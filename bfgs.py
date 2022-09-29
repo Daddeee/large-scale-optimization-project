@@ -1,14 +1,14 @@
 import time
 import numpy as np
-from common import get_start_point, f_grad, armijo_line_search
+from common import nonmonotone_line_search, get_start_point, f_grad, armijo_line_search
 
 def bfgs(points, debug=False):
-    ap, is_optimal, f, d, t = get_start_point(points)
-    
     start_time = time.time()
+    
+    ap, is_optimal, f, d, t = get_start_point(points)
 
     if d is None:
-        raise ValueError("anchor point", ap, "is the solution.")
+        return np.array([f]), time.time() - start_time
 
     x = ap + t*d
     H = np.identity(points.shape[1])
@@ -35,8 +35,9 @@ def bfgs(points, debug=False):
         prev_x = x
         prev_grad = grad
 
-        gamma, x = armijo_line_search(x, np.asarray(d).reshape(-1), f, grad, gamma, points)
-        f, grad = f_grad(x, points)
+        gamma, x, f, grad = nonmonotone_line_search(points, x, d, result)
+        # gamma, x = armijo_line_search(x, np.asarray(d).reshape(-1), f, grad, gamma, points)
+        # f, grad = f_grad(x, points)
 
         y = np.matrix(grad - prev_grad).T
         s = np.matrix(x - prev_x).T

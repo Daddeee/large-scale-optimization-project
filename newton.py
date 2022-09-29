@@ -1,15 +1,16 @@
 import time
 import numpy as np
-from common import get_min_anchor_direction_and_stepsize, get_start_point, f_grad_hess, armijo_line_search
+from common import nonmonotone_line_search, get_min_anchor_direction_and_stepsize, get_start_point, f_grad_hess, armijo_line_search
 
-def newton(points, debug=False):
-    ap, d, t = get_min_anchor_direction_and_stepsize(points)
-    # ap, is_optimal, f, d, t = get_start_point(points)
-
+def newton(points, debug=True):
+    # ap, d, t = get_min_anchor_direction_and_stepsize(points)
     start_time = time.time()
 
+    ap, is_optimal, f, d, t = get_start_point(points)
+
     if d is None:
-        raise ValueError("anchor point", ap, "is the solution.")
+        print("Anchor point")
+        return np.array([f]), time.time() - start_time
 
     x = ap + t*d
 
@@ -39,8 +40,8 @@ def newton(points, debug=False):
 
         # compute stepsize with armijo backtracking
         # condition: f (x_k + γ_k * d_k) ≤ f(x_k) + σ * γ_k * <∇f(x_k), d_k>
-        gamma, x = armijo_line_search(x, d, f, grad, gamma, points)
+        # gamma, x = armijo_line_search(x, d, f, grad, gamma, points)
 
-        # gamma, x, f, grad = gnonmonotone_line_search(x, d, result)
+        gamma, x, f, grad = nonmonotone_line_search(points, x, d, result)
 
     return np.array(result), time.time() - start_time

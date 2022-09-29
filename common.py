@@ -1,12 +1,12 @@
 import numpy as np
 
-def nonmonotone_line_search(x, d, hist, M=10, sig1=0.1, sig2=0.9, gam=1e-4, maxiter=1000):
+def nonmonotone_line_search(points, x, d, hist, M=10, sig1=0.1, sig2=0.9, gam=1e-4, maxiter=1000):
     alpha = 1
-    f_max = max(obj_hist[-M:])
-    f_prev = f(x)
+    f_max = max(hist[-M:])
+    f_prev = f(x, points)
     for i in range(maxiter):
-        f_val = f(x + alpha * d)
-        g = grad(x)
+        f_val = f(x + alpha * d, points)
+        _, g = f_grad(x, points)
         gtd = np.dot(g, d)
         if f_val <= f_max + gam * alpha * gtd:
             return alpha, x + alpha * d, f_val, g
@@ -23,12 +23,11 @@ def nonmonotone_line_search(x, d, hist, M=10, sig1=0.1, sig2=0.9, gam=1e-4, maxi
 def f_grad_hess(x, points):
     diffs = x - points
     hess_second_term_numerator = np.matmul(np.expand_dims(diffs, axis=2), np.expand_dims(diffs, axis=1))
-    idents = np.stack([np.identity(points.shape[1])]*points.shape[0], axis=0).shape
+    idents = np.stack([np.identity(points.shape[1])]*points.shape[0], axis=0)
     sod = np.sum(diffs**2, axis=1)**0.5
     f = np.sum(sod)
     grad = np.sum(diffs / sod[:,None], axis=0)
-    import pdb; pdb.set_trace()
-    hess = idents / sod[:, None, None] - hess_second_term_numerator / (sod**3)[:, None, None]
+    hess = np.sum(idents / sod[:, None, None] - hess_second_term_numerator / (sod**3)[:, None, None], axis=0)
     return f, grad, hess
 
 def euclidean_trick(x):
@@ -57,13 +56,9 @@ def get_start_point(points):
     sods = np.sum(dists, axis=0)
     min_i = np.argmin(sods)
     min_s = dists[min_i]
-    if np.isnan(min_s).any():
-        print("aaaaaaaa")
-        import pdb; pdb.set_trace()
     min_f = sods[min_i]
     min_p = points[min_i]
-    r = (points - min_p) / min_s[:,None]
-    r[min_i] = np.zeros(len(min_p))
+    r = np.divide((points - min_p).T, min_s, out=np.zeros_like(points.T), where=min_s!=0).T
     min_r = np.sum(r)
     min_r_norm = np.sum(min_r**2)**0.5
     is_optimal = min_r_norm <= 1
@@ -71,7 +66,7 @@ def get_start_point(points):
         return min_p, min_f, True, None, None
     else:
         d = - min_r / min_r_norm
-        t = (min_r_norm - 1) / np.sum(1 / min_s)
+        t = (min_r_norm - 1) / np.sum(1 / min_s[min_s != 0])
         return min_p + d*t, None, False, d, t
 
 def get_min_anchor_direction_and_stepsize(points):

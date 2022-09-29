@@ -8,8 +8,8 @@ if not os.path.exists(directory):
 
 max_coord = 200000
 
-dims = [2, 5, 10, 20]
-sizes = [1000, 2000, 5000, 10000, 50000, 100000]
+dims = [1, 2, 5]
+sizes = [100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000]
 
 for dim in dims:
     base_dir = "{}{}/".format(directory, dim)
