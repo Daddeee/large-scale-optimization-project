@@ -9,7 +9,7 @@ def nonmonotone_line_search(points, x, d, hist, M=10, sig1=0.1, sig2=0.9, gam=1e
         _, g = f_grad(x, points)
         gtd = np.dot(g, d)
         if f_val <= f_max + gam * alpha * gtd:
-            return alpha, x + alpha * d, f_val, g
+            return alpha, x + alpha * d, f_val
         a1 = -0.5 * (alpha**2) * gtd / (f_val - f_prev - alpha * gtd)
         if sig1 <= a1 and a1 <= sig2 * alpha:
             alpha = a1
@@ -18,7 +18,7 @@ def nonmonotone_line_search(points, x, d, hist, M=10, sig1=0.1, sig2=0.9, gam=1e
         
         f_prev = f_val
 
-    return None, None, None, None
+    return None, None, None
 
 def f_grad_hess(x, points):
     diffs = x - points

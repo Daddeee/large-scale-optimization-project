@@ -42,6 +42,6 @@ def newton(points, debug=True):
         # condition: f (x_k + γ_k * d_k) ≤ f(x_k) + σ * γ_k * <∇f(x_k), d_k>
         # gamma, x = armijo_line_search(x, d, f, grad, gamma, points)
 
-        gamma, x, f, grad = nonmonotone_line_search(points, x, d, result)
+        gamma, x, f = nonmonotone_line_search(points, x, d, result)
 
     return np.array(result), time.time() - start_time

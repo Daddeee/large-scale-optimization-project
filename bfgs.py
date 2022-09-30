@@ -31,13 +31,14 @@ def bfgs(points, debug=False):
             break
 
         d = -np.matmul(H, grad)
+        d = np.array(d).flatten()
         
         prev_x = x
         prev_grad = grad
 
-        gamma, x, f, grad = nonmonotone_line_search(points, x, d, result)
+        gamma, x, _ = nonmonotone_line_search(points, x, d, result)
         # gamma, x = armijo_line_search(x, np.asarray(d).reshape(-1), f, grad, gamma, points)
-        # f, grad = f_grad(x, points)
+        f, grad = f_grad(x, points)
 
         y = np.matrix(grad - prev_grad).T
         s = np.matrix(x - prev_x).T

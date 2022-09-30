@@ -70,9 +70,9 @@ for d in os.listdir(instances_directory):
         print("SOLVING {}".format(f))
 
         run_experiment(weiszfeld, "weiszfeld", "red", weiszfeld_iter_list, weiszfeld_time_list)
-        run_experiment(newton, "newton", "blue", newton_iter_list, newton_time_list)
+        void_experiment(newton, "newton", "blue", newton_iter_list, newton_time_list)
         run_experiment(bfgs, "bfgs", "green", bfgs_iter_list, bfgs_time_list)
-        run_experiment(accelerated_weiszfeld, "accelerated", "yellow", primal_dual_iter_list, primal_dual_time_list)
+        void_experiment(accelerated_weiszfeld, "accelerated", "yellow", primal_dual_iter_list, primal_dual_time_list)
 
         plt.legend()
 
@@ -80,7 +80,6 @@ for d in os.listdir(instances_directory):
 
         plt.savefig(os.path.join(result_dir, filename))
         plt.clf()
-
 
 
 df = pd.DataFrame({
