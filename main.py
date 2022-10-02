@@ -10,46 +10,129 @@ from bfgs import bfgs
 from modified_weiszfeld import modified_weiszfeld
 from accelerated_weiszfeld import accelerated_weiszfeld
 
+class Instance:
+    def __init__(self, points):
+        self.points = points
+        self.n = points.shape[1]
+        self.m = points.shape[0]
+        self.id = "{}-{}".format(self.n, self.m)
 
-def void_experiment(func, name, color, iter_list, time_list):
-    iter_list.append(0)
-    time_list.append(0)
+    def read(path):
+        points = np.loadtxt(f)
+        return Instance(points)
 
-def run_experiment(func, name, color, iter_list, time_list):
-    print("Running {}".format(name))
+class ExperimentResult:
+    def __init__(self, name, n, m, n_iter, time, iter_time, f):
+        self.name = name
+        self.n = n
+        self.m = m
+        self.n_iter = n_iter
+        self.time = time
+        self.iter_time = iter_time
+        self.f = f
 
-    debug = False
+    def to_row_solution(self):
+        return {
+            f"{self.name} obj": self.f, 
+            f"{self.name} n iter": self.n_iter, 
+            f"{self.name} time": self.time, 
+            f"{self.name} iter time": self.iter_time
+        }
 
-    y,t = func(points, debug)
-    x = np.arange(0, y.shape[0])
-    plt.plot(x, y, color=color, label=name)
+    def to_row_solution_with_baseline(self, baseline):
+        return {
+            f"{self.name} obj": 100 * (self.f - baseline.f) / baseline.f, 
+            f"{self.name} n iter": 100 * (self.n_iter - baseline.n_iter) / baseline.n_iter, 
+            f"{self.name} time": 100 * (self.time - baseline.time) / baseline.time, 
+            f"{self.name} iter time": 100 * (self.iter_time - baseline.iter_time) / baseline.iter_time
+        }
 
-    iter_list.append(len(y))
-    time_list.append(t)
+    def to_row(self):
+        h = self.to_row_solution()
+        h['n'] = self.n
+        h['m'] = self.m
+        return h
 
-    print("obj={}, time={}, iterations={}".format(np.amin(y), t, len(y)))
+
+class ExperimentManager:
+    SOLVERS = {
+        "weiszfeld": weiszfeld,
+        "newton": newton,
+        "bfgs": bfgs,
+        # "modified": accelerated_weiszfeld
+    }
+
+    BASELINE = "weiszfeld"
+
+    def __init__(self):
+        self.results = {}
+
+    def solve_all(self, instance):
+        for name in self.SOLVERS:
+            self.solve(instance, name)
+
+    def solve(self, instance, name):
+        print("Running {}".format(name))
+
+        debug = False
+
+        func = self.SOLVERS[name]
+
+        y,t,t_iter = func(instance.points, debug)
+        x = np.arange(0, y.shape[0])
+
+        if not (instance.id in self.results):
+            self.results[instance.id] = []
+
+        result = ExperimentResult(name, instance.n, instance.m, len(y), t, t_iter, np.amin(y))
+        self.results[instance.id].append(result)
+
+        print("obj={}, time={}, iterations={}".format(result.f, result.time, result.n_iter))
 
 
+    def write_csv(self, outpath):
+        rows = []
+        for instance_id in self.results:
+            instance_results = self.results[instance_id]
+            instance_results.sort(key=lambda x: x.name)
+
+            baseline = None
+            results = []
+            for res in instance_results:
+                if res.name == self.BASELINE:
+                    baseline = res
+                else:
+                    results.append(res)
+            
+            h = None
+            if baseline is not None:
+                h = baseline.to_row()
+
+            first = True
+            for res in results:
+                if first:
+                    if h is None:
+                        h = res.to_row()
+                    first = False
+                
+                h = {**h, **res.to_row_solution()}
+
+                # if baseline is None:
+                #     h = {**h, **res.to_row_solution()}
+                # else:
+                #     h = {**h, **res.to_row_solution_with_baseline(baseline)}
+            
+            rows.append(h)
+
+        df = pd.DataFrame(rows)
+        df.to_csv(outpath, sep=";")
+
+
+exp_manager = ExperimentManager()
 
 result_directory = "results/"
-if not os.path.exists(result_directory):
-    os.makedirs(result_directory)
-
-n_list = []
-m_list = []
-weiszfeld_time_list = []
-weiszfeld_iter_list = []
-newton_time_list = []
-newton_iter_list = []
-bfgs_time_list = []
-bfgs_iter_list = []
-primal_dual_time_list = []
-primal_dual_iter_list = []
-
 instances_directory = "instances/"
 for d in os.listdir(instances_directory):
-
-    n = int(d)
 
     instance_dir = os.path.join(instances_directory, d)
 
@@ -60,39 +143,9 @@ for d in os.listdir(instances_directory):
     instances = [os.path.join(instance_dir, f) for f in os.listdir(instance_dir) if ".txt" in f]
 
     for f in instances:
-        points = np.loadtxt(f)
-
-        m = points.shape[0]
-
-        n_list.append(n)
-        m_list.append(m)
-
+        instance = Instance.read(f)
         print("SOLVING {}".format(f))
-
-        run_experiment(weiszfeld, "weiszfeld", "red", weiszfeld_iter_list, weiszfeld_time_list)
-        run_experiment(newton, "newton", "blue", newton_iter_list, newton_time_list)
-        run_experiment(bfgs, "bfgs", "green", bfgs_iter_list, bfgs_time_list)
-        run_experiment(accelerated_weiszfeld, "modified", "yellow", primal_dual_iter_list, primal_dual_time_list)
-
-        plt.legend()
-
-        filename = "{}.png".format(points.shape[0])
-
-        plt.savefig(os.path.join(result_dir, filename))
-        plt.clf()
+        exp_manager.solve_all(instance)
+        exp_manager.write_csv("result.csv")
 
 
-df = pd.DataFrame({
-    'n': n_list,
-    'm': m_list,
-    'weiszfeld iter': weiszfeld_iter_list,
-    'weiszfeld time': weiszfeld_time_list,
-    'newton iter': newton_iter_list,
-    'newton time': newton_time_list,
-    'bfgs iter': bfgs_iter_list,
-    'bfgs time': bfgs_time_list,
-    'primal-dual iter': primal_dual_iter_list,
-    'primal-dual time': primal_dual_time_list
-})
-
-df.to_csv("result.csv", sep=";")

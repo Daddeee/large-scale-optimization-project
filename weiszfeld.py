@@ -1,11 +1,19 @@
 import numpy as np
 import time
+from common import get_start_point
 
 def weiszfeld(points, debug=False):
     start_time = time.time()
     max_error = 1e-5
     ext_condition = True
-    start_p = np.average(points, axis=0)
+    
+    ap, is_optimal, f, d, t = get_start_point(points)
+    if d is None:
+        return np.array([f]), time.time() - start_time
+    start_p = ap + t*d
+    # x = np.average(points, axis=0)
+    
+    start_iters_time = time.time()
     result = []
     while ext_condition:
         sod = np.sum((points - start_p)**2, axis=1)**0.5
@@ -18,4 +26,6 @@ def weiszfeld(points, debug=False):
         if debug:
             print("f={} x={}".format(f, new_p))
 
-    return np.array(result), time.time() - start_time
+    iter_time = time.time() - start_iters_time
+
+    return np.array(result), time.time() - start_time, iter_time

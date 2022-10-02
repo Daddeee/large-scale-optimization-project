@@ -6,11 +6,14 @@ def bfgs(points, debug=False):
     start_time = time.time()
     
     ap, is_optimal, f, d, t = get_start_point(points)
-
     if d is None:
         return np.array([f]), time.time() - start_time
-
     x = ap + t*d
+
+    # x = np.average(points, axis=0)
+
+    start_iters_time = time.time()
+
     H = np.identity(points.shape[1])
 
     eps = 1e-5
@@ -53,4 +56,6 @@ def bfgs(points, debug=False):
         HYS = Hy * s.T
         H = H + (ys + yHy)*(s*s.T)/(ys**2) - (HYS + HYS.T) / ys
 
-    return np.array(result), time.time() - start_time
+    iter_time = time.time() - start_iters_time
+
+    return np.array(result), time.time() - start_time, iter_time

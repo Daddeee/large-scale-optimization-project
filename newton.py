@@ -7,12 +7,13 @@ def newton(points, debug=True):
     start_time = time.time()
 
     ap, is_optimal, f, d, t = get_start_point(points)
-
     if d is None:
-        print("Anchor point")
         return np.array([f]), time.time() - start_time
-
     x = ap + t*d
+
+    # x = np.average(points, axis=0)
+
+    start_iters_time = time.time()
 
     eps = 1e-5
     p = 1e-4
@@ -44,4 +45,6 @@ def newton(points, debug=True):
 
         gamma, x, f = nonmonotone_line_search(points, x, d, result)
 
-    return np.array(result), time.time() - start_time
+    iter_time = time.time() - start_iters_time
+
+    return np.array(result), time.time() - start_time, iter_time
