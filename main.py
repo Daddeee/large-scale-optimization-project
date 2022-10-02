@@ -31,6 +31,27 @@ class ExperimentResult:
         self.iter_time = iter_time
         self.f = f
 
+    def aggregate(other_results):
+        assert len(other_results) > 0, "Empty results"
+        name = other_results[0].name
+        n = other_results[0].n
+        m = other_results[0].m
+
+        sum_n_iter, sum_time, sum_iter_time = 0, 0, 0
+        for res in other_results:
+            assert res.name == name
+            assert res.n == n
+            assert res.m == m
+            sum_n_iter += res.n_iter
+            sum_time += res.time
+            sum_iter_time += res.iter_time
+        
+        n_iter = sum_n_iter / len(other_results)
+        time = sum_time / len(other_results)
+        iter_time = sum_iter_time / len(other_results)
+        
+        return ExperimentResult(name, n, m, n_iter, time, iter_time, 0)
+
     def to_row_solution(self):
         return {
             f"{self.name} obj": self.f, 
@@ -82,10 +103,13 @@ class ExperimentManager:
         x = np.arange(0, y.shape[0])
 
         if not (instance.id in self.results):
-            self.results[instance.id] = []
+            self.results[instance.id] = {}
+
+        if not (name in self.results[instance.id]):
+            self.results[instance.id][name] = []
 
         result = ExperimentResult(name, instance.n, instance.m, len(y), t, t_iter, np.amin(y))
-        self.results[instance.id].append(result)
+        self.results[instance.id][name].append(result)
 
         print("obj={}, time={}, iterations={}".format(result.f, result.time, result.n_iter))
 
@@ -93,7 +117,12 @@ class ExperimentManager:
     def write_csv(self, outpath):
         rows = []
         for instance_id in self.results:
-            instance_results = self.results[instance_id]
+            res = self.results[instance_id]
+
+            instance_results = []
+            for solv in res:
+                instance_results.append(ExperimentResult.aggregate(res[solv]))
+
             instance_results.sort(key=lambda x: x.name)
 
             baseline = None
@@ -134,18 +163,21 @@ result_directory = "results/"
 instances_directory = "instances/"
 for d in os.listdir(instances_directory):
 
-    instance_dir = os.path.join(instances_directory, d)
+    dim_dir = os.path.join(instances_directory, d)
 
-    result_dir = os.path.join(result_directory, d)
-    if not os.path.exists(result_dir):
-        os.makedirs(result_dir)
+    result_dim_dir = os.path.join(result_directory, d)
+    if not os.path.exists(result_dim_dir):
+        os.makedirs(result_dim_dir)
 
-    instances = [os.path.join(instance_dir, f) for f in os.listdir(instance_dir) if ".txt" in f]
+    for size in os.listdir(dim_dir):
+        size_dir = os.path.join(dim_dir, size)
 
-    for f in instances:
-        instance = Instance.read(f)
-        print("SOLVING {}".format(f))
-        exp_manager.solve_all(instance)
+        instances = [os.path.join(size_dir, f) for f in os.listdir(size_dir) if ".txt" in f]
+
+        for f in instances:
+            instance = Instance.read(f)
+            print("SOLVING {}".format(f))
+            exp_manager.solve_all(instance)
+
         exp_manager.write_csv("result.csv")
-
 

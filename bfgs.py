@@ -7,7 +7,7 @@ def bfgs(points, debug=False):
     
     ap, is_optimal, f, d, t = get_start_point(points)
     if d is None:
-        return np.array([f]), time.time() - start_time
+        return np.array([f]), time.time() - start_time, 0
     x = ap + t*d
 
     # x = np.average(points, axis=0)
@@ -33,6 +33,11 @@ def bfgs(points, debug=False):
 
         if debug:
             print("f={} x={} grad={}".format(f, x, grad))
+
+        norm_grad = np.sum(grad**2)**0.5
+
+        if norm_grad <= eps:
+            break
 
         norm_grad = np.sum(grad**2)**0.5
         if norm_grad <= eps:
