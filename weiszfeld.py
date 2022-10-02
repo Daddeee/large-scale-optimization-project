@@ -13,7 +13,7 @@ def weiszfeld(points, debug=False):
     
     max_error = 1e-5
     ext_condition = True
-    maxiters = 1000
+    maxiters = 100
 
     start_iters_time = time.time()
     result = []

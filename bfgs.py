@@ -25,7 +25,7 @@ def bfgs(points, debug=False):
 
     max_error = 1e-5
     ext_condition = True
-    maxiters = 1000
+    maxiters = 100
     prev_x = x
 
     while ext_condition and len(result) < maxiters:
