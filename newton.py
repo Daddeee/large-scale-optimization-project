@@ -22,18 +22,18 @@ def newton(points, debug=True):
 
     result = []
     
-    while True:
+    max_error = 1e-5
+    ext_condition = True
+    maxiters = 1000
+    prev_x = x
+    
+    while ext_condition and len(result) < maxiters:
         f, grad, hess = f_grad_hess(x, points)
 
         result.append(f)
 
         if debug:
             print("f={} x={} grad={}".format(f, x, grad))
-
-        norm_grad = np.sum(grad**2)**0.5
-
-        if norm_grad <= eps:
-            break
 
         # t d = −∇^2f(x_k)^(−1) * ∇f(x_k)
         invh = np.linalg.inv(hess)
@@ -43,7 +43,10 @@ def newton(points, debug=True):
         # condition: f (x_k + γ_k * d_k) ≤ f(x_k) + σ * γ_k * <∇f(x_k), d_k>
         # gamma, x = armijo_line_search(x, d, f, grad, gamma, points)
 
+        prev_x = x
         gamma, x, f = nonmonotone_line_search(points, x, d, result)
+
+        ext_condition = (np.abs(x - prev_x) > max_error).any()
 
     iter_time = time.time() - start_iters_time
 

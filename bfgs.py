@@ -23,7 +23,12 @@ def bfgs(points, debug=False):
 
     result = []
 
-    while True:
+    max_error = 1e-5
+    ext_condition = True
+    maxiters = 1000
+    prev_x = x
+
+    while ext_condition and len(result) < maxiters:
         result.append(f)
 
         if debug:
@@ -39,9 +44,12 @@ def bfgs(points, debug=False):
         prev_x = x
         prev_grad = grad
 
+        prev_x = x
         gamma, x, _ = nonmonotone_line_search(points, x, d, result)
         # gamma, x = armijo_line_search(x, np.asarray(d).reshape(-1), f, grad, gamma, points)
         f, grad = f_grad(x, points)
+
+        ext_condition = (np.abs(x - prev_x) > max_error).any()
 
         y = np.matrix(grad - prev_grad).T
         s = np.matrix(x - prev_x).T
