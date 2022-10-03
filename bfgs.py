@@ -6,12 +6,12 @@ from common import nonmonotone_line_search, get_start_point, f_grad, armijo_line
 def bfgs(points, debug=False):
     start_time = time.time()
     
-    ap, is_optimal, f, d, t = get_start_point(points)
-    if d is None:
-        return np.array([f]), time.time() - start_time, 0
-    x = ap + t*d
+    # ap, is_optimal, f, d, t = get_start_point(points)
+    # if d is None:
+    #     return np.array([f]), time.time() - start_time, 0
+    # x = ap + t*d
 
-    # x = np.average(points, axis=0)
+    x = np.average(points, axis=0)
 
     start_iters_time = time.time()
 
