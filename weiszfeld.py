@@ -9,7 +9,7 @@ def weiszfeld(points, debug=False):
     # if d is None:
     #     return np.array([f]), time.time() - start_time, 0
     # start_p = ap + t*d
-    x = np.average(points, axis=0)
+    start_p = np.average(points, axis=0)
     
     max_error = 1e-5
     ext_condition = True
