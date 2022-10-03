@@ -13,7 +13,7 @@ np.random.seed(1337)
 
 dims = [2, 3, 4, 5, 6, 7, 8, 9, 10]
 sizes = [100, 200, 500, 1000, 2000, 5000, 10000]
-num_rand = 100
+num_rand = 10
 
 for dim in tqdm(dims):
     base_dir = "{}{}/".format(directory, dim)

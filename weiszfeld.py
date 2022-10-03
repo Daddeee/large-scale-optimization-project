@@ -5,11 +5,11 @@ from common import get_start_point
 def weiszfeld(points, debug=False):
     start_time = time.time()
     
-    # ap, is_optimal, f, d, t = get_start_point(points)
-    # if d is None:
-    #     return np.array([f]), time.time() - start_time, 0
-    # start_p = ap + t*d
-    start_p = np.average(points, axis=0)
+    ap, is_optimal, f, d, t = get_start_point(points)
+    if d is None:
+        return np.array([f]), time.time() - start_time, 0
+    start_p = ap + t*d
+    # start_p = np.average(points, axis=0)
     
     max_error = 1e-5
     ext_condition = True

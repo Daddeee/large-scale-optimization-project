@@ -7,6 +7,7 @@ from weiszfeld import weiszfeld
 from newton import newton
 from primal_dual import primal_dual
 from bfgs import bfgs
+from lbfgs import lbfgs
 from modified_weiszfeld import modified_weiszfeld
 from accelerated_weiszfeld import accelerated_weiszfeld
 
@@ -80,6 +81,7 @@ class ExperimentManager:
         "weiszfeld": weiszfeld,
         "newton": newton,
         "bfgs": bfgs,
+        "lbfgs": lbfgs
         # "modified": accelerated_weiszfeld
     }
 

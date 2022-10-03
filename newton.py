@@ -6,12 +6,12 @@ def newton(points, debug=True):
     # ap, d, t = get_min_anchor_direction_and_stepsize(points)
     start_time = time.time()
 
-    # ap, is_optimal, f, d, t = get_start_point(points)
-    # if d is None:
-    #     return np.array([f]), time.time() - start_time, 0
-    # x = ap + t*d
+    ap, is_optimal, f, d, t = get_start_point(points)
+    if d is None:
+        return np.array([f]), time.time() - start_time, 0
+    x = ap + t*d
 
-    x = np.average(points, axis=0)
+    # x = np.average(points, axis=0)
 
     start_iters_time = time.time()
 

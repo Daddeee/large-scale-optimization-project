@@ -1,5 +1,6 @@
 import numpy as np
 
+# @profile
 def nonmonotone_line_search(points, x, d, hist, M=10, sig1=0.1, sig2=0.9, gam=1e-4, maxiter=1000):
     alpha = 1
     f_max = max(hist[-M:])
@@ -20,10 +21,12 @@ def nonmonotone_line_search(points, x, d, hist, M=10, sig1=0.1, sig2=0.9, gam=1e
 
     return None, None, None
 
+# @profile
 def f_grad_hess(x, points):
     diffs = x - points
     hess_second_term_numerator = np.matmul(np.expand_dims(diffs, axis=2), np.expand_dims(diffs, axis=1))
-    idents = np.stack([np.identity(points.shape[1])]*points.shape[0], axis=0)
+    idnt = np.identity(points.shape[1])
+    idents = np.broadcast_to(idnt, (points.shape[0],) + idnt.shape)
     sod = np.sum(diffs**2, axis=1)**0.5
     f = np.sum(sod)
     grad = np.sum(diffs / sod[:,None], axis=0)
@@ -101,6 +104,7 @@ def get_min_anchor_direction_and_stepsize(points):
 
 #     return f, grad, hess
 
+# @profile
 def f_grad(x, points):
     diffs = x - points
     so2d = np.sum(diffs**2, axis=1)
@@ -109,6 +113,7 @@ def f_grad(x, points):
     grad = np.sum(diffs / sod[:,None], axis=0)
     return f, grad
 
+# @profile
 def f(x, points):
     diffs = x - points
     return np.sum(np.sum(diffs**2, axis=1)**0.5)
