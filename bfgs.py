@@ -11,7 +11,7 @@ def bfgs(points, debug=False):
         return np.array([f]), time.time() - start_time, 0
     x = ap + t*d
 
-    x = np.average(points, axis=0)
+    # x = np.average(points, axis=0)
 
     start_iters_time = time.time()
 
